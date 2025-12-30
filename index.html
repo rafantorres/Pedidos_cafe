@@ -197,6 +197,12 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary {
             background: #95a5a6;
             color: white;
@@ -205,6 +211,26 @@
 
         .btn-secondary:hover {
             background: #7f8c8d;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-success:hover {
+            background: #229954;
         }
 
         .btn-container {
@@ -243,6 +269,27 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Admin Styles */
@@ -422,6 +469,16 @@
             .modal-content {
                 margin: 30% auto;
             }
+
+            .btn-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                margin-left: 0 !important;
+            }
         }
     </style>
 </head>
@@ -431,7 +488,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>🔐 Acesso Administrativo</h2>
-                <p>Digite a senha para continuar</p>
+                <p>Digite a
             </div>
             <div class="login-error" id="loginError">
                 Senha incorreta! Tente novamente.
@@ -478,7 +535,7 @@
                 </div>
 
                 <div class="btn-container">
-                    <button type="submit" class="btn btn-primary">Enviar Pedido</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Enviar Pedido</button>
                     <button type="button" class="btn btn-secondary" onclick="resetForm()">Limpar</button>
                 </div>
             </form>
@@ -511,14 +568,26 @@
             <div id="consolidatedOrders" style="display: none;"></div>
 
             <div class="btn-container" style="margin-top: 30px;">
+                <button class="btn btn-success" onclick="exportToPDF()">📄 Exportar PDF</button>
                 <button class="btn btn-primary" onclick="exportToCSV()">📥 Exportar CSV</button>
-                <button class="btn btn-secondary" onclick="clearAllOrders()">🗑️ Limpar Todos os Pedidos</button>
+                <button class="btn btn-danger" onclick="clearAllOrders()">🗑️ Limpar Todos os Pedidos</button>
             </div>
         </div>
     </div>
 
+    <!-- Bibliotecas -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
     <script>
-        // Senha de acesso
+        // ⚠️ CONFIGURAÇÃO DO SUPABASE - SUBSTITUA COM SUAS CREDENCIAIS
+        const SUPABASE_URL = 'https://pjwznfcbqonshemtqzfl.supabase.coI'; // Ex: https://xxxxx.supabase.co
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqd3puZmNicW9uc2hlbXRxemZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjE1NDAsImV4cCI6MjA4MjY5NzU0MH0.jth47ILFnQ1N_CQAPM8IYiQTF3Vwl76nA_Kmx45uvis';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Senha de acesso admin
         const ADMIN_PASSWORD = 'cafescompartilhados';
 
         // Dados dos cafés
@@ -617,13 +686,20 @@
             document.getElementById('loginModal').style.display = 'none';
         }
 
-        function checkPassword() {
+        async function checkPassword() {
             const password = document.getElementById('adminPassword').value;
 
             if (password === ADMIN_PASSWORD) {
-                sessionStorage.setItem('adminAuthenticated', 'true');
-                closeLoginModal();
-                showAdmin();
+                // Login no Supabase para acesso admin
+                const { data, error } = await supabase.auth.signInAnonymously();
+
+                if (!error) {
+                    sessionStorage.setItem('adminAuthenticated', 'true');
+                    closeLoginModal();
+                    showAdmin();
+                } else {
+                    alert('Erro ao autenticar. Tente novamente.');
+                }
             } else {
                 document.getElementById('loginError').style.display = 'block';
                 document.getElementById('adminPassword').value = '';
@@ -631,7 +707,6 @@
             }
         }
 
-        // Permitir Enter para fazer login
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('adminPassword').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -640,12 +715,13 @@
             });
         });
 
-        function logout() {
+        async function logout() {
+            await supabase.auth.signOut();
             sessionStorage.removeItem('adminAuthenticated');
             showOrderForm();
         }
 
-        // Renderizar cafés no formulário
+        // Renderizar cafés
         function renderCoffees() {
             const grid = document.getElementById('coffeeGrid');
             grid.innerHTML = coffees.map(coffee => `
@@ -693,8 +769,12 @@
         }
 
         // Submeter pedido
-        document.getElementById('coffeeOrderForm').addEventListener('submit', function(e) {
+        document.getElementById('coffeeOrderForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
 
             const name = document.getElementById('customerName').value;
             const phone = document.getElementById('customerPhone').value;
@@ -720,25 +800,56 @@
 
             if (items.length === 0) {
                 showError('Por favor, selecione pelo menos um café!');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Pedido';
                 return;
             }
 
-            const order = {
-                id: Date.now(),
-                name: name,
-                phone: phone,
-                items: items,
-                date: new Date().toLocaleString('pt-BR'),
-                total: items.reduce((sum, item) => sum + item.total, 0)
-            };
+            const total = items.reduce((sum, item) => sum + item.total, 0);
 
-            // Salvar no localStorage
-            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
-            orders.push(order);
-            localStorage.setItem('coffeeOrders', JSON.stringify(orders));
+            try {
+                // Inserir pedido
+                const { data: orderData, error: orderError } = await supabase
+                    .from('orders')
+                    .insert([
+                        {
+                            customer_name: name,
+                            customer_phone: phone,
+                            total: total
+                        }
+                    ])
+                    .select();
 
-            showSuccess();
-            resetForm();
+                if (orderError) throw orderError;
+
+                const orderId = orderData[0].id;
+
+                // Inserir itens do pedido
+                const orderItems = items.map(item => ({
+                    order_id: orderId,
+                    coffee_name: item.coffeeName,
+                    quantity: item.quantity,
+                    size: item.size,
+                    grind: item.grind,
+                    unit_price: item.unitPrice,
+                    total: item.total
+                }));
+
+                const { error: itemsError } = await supabase
+                    .from('order_items')
+                    .insert(orderItems);
+
+                if (itemsError) throw itemsError;
+
+                showSuccess();
+                resetForm();
+            } catch (error) {
+                console.error('Erro:', error);
+                showError('Erro ao enviar pedido. Tente novamente.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Pedido';
+            }
         });
 
         function showSuccess() {
@@ -768,8 +879,7 @@
         }
 
         // Área Administrativa
-        function showAdmin() {
-            // Verificar autenticação
+        async function showAdmin() {
             if (sessionStorage.getItem('adminAuthenticated') !== 'true') {
                 showLoginModal();
                 return;
@@ -777,7 +887,7 @@
 
             document.getElementById('orderForm').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
-            loadOrders();
+            await loadOrders();
         }
 
         function showOrderForm() {
@@ -799,127 +909,292 @@
             }
         }
 
-        function loadOrders() {
-            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
+        async function loadOrders() {
             const container = document.getElementById('individualOrders');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando pedidos...</div>';
 
-            if (orders.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 40px;">Nenhum pedido recebido ainda.</p>';
-                return;
+            try {
+                const { data: orders, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items (*)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (orders.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 40px;">Nenhum pedido recebido ainda.</p>';
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <strong style="font-size: 1.2em;">${order.customer_name}</strong><br>
+                                <span style="color: #7f8c8d;">📱 ${order.customer_phone}</span><br>
+                                <span style="color: #95a5a6; font-size: 0.9em;">📅 ${new Date(order.order_date).toLocaleString('pt-BR')}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5em; color: #27ae60; font-weight: bold;">
+                                    R$ ${parseFloat(order.total).toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="order-items">
+                            ${order.order_items.map(item => `
+                                <div class="order-item">
+                                    <strong>${item.coffee_name}</strong> - 
+                                    ${item.quantity}x ${item.size} (${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}) - 
+                                    R$ ${parseFloat(item.total).toFixed(2)}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 40px;">Erro ao carregar pedidos.</p>';
             }
-
-            container.innerHTML = orders.map(order => `
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <strong style="font-size: 1.2em;">${order.name}</strong><br>
-                            <span style="color: #7f8c8d;">📱 ${order.phone}</span><br>
-                            <span style="color: #95a5a6; font-size: 0.9em;">📅 ${order.date}</span>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.5em; color: #27ae60; font-weight: bold;">
-                                R$ ${order.total.toFixed(2)}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="order-items">
-                        ${order.items.map(item => `
-                            <div class="order-item">
-                                <strong>${item.coffeeName}</strong> - 
-                                ${item.quantity}x ${item.size} (${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}) - 
-                                R$ ${item.total.toFixed(2)}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
         }
 
-        function loadConsolidated() {
-            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
-            const consolidated = {};
+        async function loadConsolidated() {
+            const container = document.getElementById('consolidatedOrders');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando consolidado...</div>';
 
-            orders.forEach(order => {
-                order.items.forEach(item => {
-                    const key = `${item.coffeeName}|${item.size}|${item.grind}`;
+            try {
+                const { data: items, error } = await supabase
+                    .from('order_items')
+                    .select('*');
+
+                if (error) throw error;
+
+                const consolidated = {};
+                items.forEach(item => {
+                    const key = `${item.coffee_name}|${item.size}|${item.grind}`;
                     if (!consolidated[key]) {
                         consolidated[key] = {
-                            coffeeName: item.coffeeName,
+                            coffeeName: item.coffee_name,
                             size: item.size,
                             grind: item.grind,
                             quantity: 0,
-                            unitPrice: item.unitPrice
+                            unitPrice: parseFloat(item.unit_price)
                         };
                     }
                     consolidated[key].quantity += item.quantity;
                 });
-            });
 
-            const container = document.getElementById('consolidatedOrders');
+                if (Object.keys(consolidated).length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 40px;">Nenhum pedido para consolidar.</p>';
+                    return;
+                }
 
-            if (Object.keys(consolidated).length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 40px;">Nenhum pedido para consolidar.</p>';
-                return;
-            }
-
-            container.innerHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Café</th>
-                            <th>Tamanho</th>
-                            <th>Tipo</th>
-                            <th>Quantidade Total</th>
-                            <th>Valor Unitário</th>
-                            <th>Valor Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${Object.values(consolidated).map(item => `
+                container.innerHTML = `
+                    <table>
+                        <thead>
                             <tr>
-                                <td><strong>${item.coffeeName}</strong></td>
-                                <td>${item.size}</td>
-                                <td>${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}</td>
-                                <td><strong>${item.quantity}</strong></td>
-                                <td>R$ ${item.unitPrice.toFixed(2)}</td>
-                                <td><strong>R$ ${(item.quantity * item.unitPrice).toFixed(2)}</strong></td>
+                                <th>Café</th>
+                                <th>Tamanho</th>
+                                <th>Tipo</th>
+                                <th>Quantidade Total</th>
+                                <th>Valor Unitário</th>
+                                <th>Valor Total</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                    <tfoot>
-                        <tr style="background: #f8f9fa; font-weight: bold;">
-                            <td colspan="5" style="text-align: right;">TOTAL GERAL:</td>
-                            <td>R$ ${Object.values(consolidated).reduce((sum, item) => 
-                                sum + (item.quantity * item.unitPrice), 0).toFixed(2)}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            `;
+                        </thead>
+                        <tbody>
+                            ${Object.values(consolidated).map(item => `
+                                <tr>
+                                    <td><strong>${item.coffeeName}</strong></td>
+                                    <td>${item.size}</td>
+                                    <td>${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}</td>
+                                    <td><strong>${item.quantity}</strong></td>
+                                    <td>R$ ${item.unitPrice.toFixed(2)}</td>
+                                    <td><strong>R$ ${(item.quantity * item.unitPrice).toFixed(2)}</strong></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8f9fa; font-weight: bold;">
+                                <td colspan="5" style="text-align: right;">TOTAL GERAL:</td>
+                                <td>R$ ${Object.values(consolidated).reduce((sum, item) => 
+                                    sum + (item.quantity * item.unitPrice), 0).toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                `;
+            } catch (error) {
+                console.error('Erro:', error);
+                container.innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 40px;">Erro ao carregar consolidado.</p>';
+            }
         }
 
-        function exportToCSV() {
-            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
+        // Exportar PDF
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
-            let csv = 'Nome,Telefone,Café,Quantidade,Tamanho,Tipo,Valor Unitário,Valor Total,Data\n';
+            const isConsolidated = document.getElementById('consolidatedOrders').style.display !== 'none';
 
-            orders.forEach(order => {
-                order.items.forEach(item => {
-                    csv += `"${order.name}","${order.phone}","${item.coffeeName}",${item.quantity},"${item.size}","${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}",${item.unitPrice},${item.total},"${order.date}"\n`;
+            try {
+                if (isConsolidated) {
+                    const { data: items } = await supabase.from('order_items').select('*');
+
+                    const consolidated = {};
+                    items.forEach(item => {
+                        const key = `${item.coffee_name}|${item.size}|${item.grind}`;
+                        if (!consolidated[key]) {
+                            consolidated[key] = {
+                                coffeeName: item.coffee_name,
+                                size: item.size,
+                                grind: item.grind,
+                                quantity: 0,
+                                unitPrice: parseFloat(item.unit_price)
+                            };
+                        }
+                        consolidated[key].quantity += item.quantity;
+                    });
+
+                    doc.setFontSize(18);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Five Roasters - Pedido Consolidado', 105, 20, { align: 'center' });
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: 'center' });
+
+                    const tableData = Object.values(consolidated).map(item => [
+                        item.coffeeName,
+                        item.size,
+                        item.grind === 'graos' ? 'Em Grãos' : 'Moído',
+                        item.quantity.toString(),
+                        `R$ ${item.unitPrice.toFixed(2)}`,
+                        `R$ ${(item.quantity * item.unitPrice).toFixed(2)}`
+                    ]);
+
+                    const total = Object.values(consolidated).reduce((sum, item) => 
+                        sum + (item.quantity * item.unitPrice), 0);
+
+                    doc.autoTable({
+                        startY: 35,
+                        head: [['Café', 'Tamanho', 'Tipo', 'Qtd Total', 'Valor Unit.', 'Valor Total']],
+                        body: tableData,
+                        foot: [['', '', '', '', 'TOTAL GERAL:', `R$ ${total.toFixed(2)}`]],
+                        theme: 'grid',
+                        headStyles: { fillColor: [102, 126, 234], fontSize: 10 },
+                        footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
+                        styles: { fontSize: 9 }
+                    });
+                } else {
+                    const { data: orders } = await supabase
+                        .from('orders')
+                        .select(`*, order_items (*)`)
+                        .order('created_at', { ascending: false });
+
+                    doc.setFontSize(18);
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Five Roasters - Pedidos Individuais', 105, 20, { align: 'center' });
+
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'normal');
+                    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 105, 28, { align: 'center' });
+
+                    let yPosition = 40;
+
+                    orders.forEach((order, index) => {
+                        if (yPosition > 250) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+
+                        doc.setFontSize(12);
+                        doc.setFont(undefined, 'bold');
+                        doc.text(`Pedido #${index + 1} - ${order.customer_name}`, 15, yPosition);
+
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'normal');
+                        doc.text(`Tel: ${order.customer_phone} | Data: ${new Date(order.order_date).toLocaleString('pt-BR')}`, 15, yPosition + 6);
+
+                        yPosition += 12;
+
+                        const tableData = order.order_items.map(item => [
+                            item.coffee_name,
+                            item.quantity.toString(),
+                            item.size,
+                            item.grind === 'graos' ? 'Em Grãos' : 'Moído',
+                            `R$ ${parseFloat(item.unit_price).toFixed(2)}`,
+                            `R$ ${parseFloat(item.total).toFixed(2)}`
+                        ]);
+
+                        doc.autoTable({
+                            startY: yPosition,
+                            head: [['Café', 'Qtd', 'Tamanho', 'Tipo', 'Valor Unit.', 'Total']],
+                            body: tableData,
+                            foot: [['', '', '', '', 'TOTAL:', `R$ ${parseFloat(order.total).toFixed(2)}`]],
+                            theme: 'striped',
+                            headStyles: { fillColor: [102, 126, 234], fontSize: 9 },
+                            footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
+                            styles: { fontSize: 8 },
+                            margin: { left: 15, right: 15 }
+                        });
+
+                        yPosition = doc.lastAutoTable.finalY + 15;
+                    });
+                }
+
+                const filename = isConsolidated 
+                    ? `five_roasters_consolidado_${new Date().toISOString().split('T')[0]}.pdf`
+                    : `five_roasters_pedidos_${new Date().toISOString().split('T')[0]}.pdf`;
+
+                doc.save(filename);
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao gerar PDF');
+            }
+        }
+
+        async function exportToCSV() {
+            try {
+                const { data: orders } = await supabase
+                    .from('orders')
+                    .select(`*, order_items (*)`);
+
+                let csv = 'Nome,Telefone,Café,Quantidade,Tamanho,Tipo,Valor Unitário,Valor Total,Data\n';
+
+                orders.forEach(order => {
+                    order.order_items.forEach(item => {
+                        csv += `"${order.customer_name}","${order.customer_phone}","${item.coffee_name}",${item.quantity},"${item.size}","${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}",${item.unit_price},${item.total},"${new Date(order.order_date).toLocaleString('pt-BR')}"\n`;
+                    });
                 });
-            });
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `pedidos_five_roasters_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `pedidos_five_roasters_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao exportar CSV');
+            }
         }
 
-        function clearAllOrders() {
+        async function clearAllOrders() {
             if (confirm('Tem certeza que deseja apagar TODOS os pedidos? Esta ação não pode ser desfeita!')) {
-                localStorage.removeItem('coffeeOrders');
-                loadOrders();
-                alert('Todos os pedidos foram removidos!');
+                try {
+                    const { error } = await supabase
+                        .from('orders')
+                        .delete()
+                        .neq('id', 0); // Deleta todos
+
+                    if (error) throw error;
+
+                    await loadOrders();
+                    alert('Todos os pedidos foram removidos!');
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao limpar pedidos');
+                }
             }
         }
 
