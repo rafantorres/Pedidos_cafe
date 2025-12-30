@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Five Roasters - Pedidos 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .coffee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .coffee-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .coffee-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .coffee-card.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .coffee-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .coffee-notes {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-style: italic;
+        }
+
+        .coffee-producer {
+            color: #95a5a6;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+        }
+
+        .coffee-price {
+            font-size: 1.3em;
+            color: #27ae60;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .coffee-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .coffee-controls input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .coffee-controls select {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .admin-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .admin-link a:hover {
+            text-decoration: underline;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* Admin Styles */
+        .admin-container {
+            display: none;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .order-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .order-items {
+            margin-top: 10px;
+        }
+
+        .order-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* Modal de Login */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 40px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .modal-header p {
+            color: #7f8c8d;
+        }
+
+        .password-input-group {
+            margin-bottom: 20px;
+        }
+
+        .password-input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .password-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+        }
+
+        .login-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .coffee-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .modal-content {
+                margin: 30% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal de Login -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔐 Acesso Administrativo</h2>
+                <p>Digite a senha para continuar</p>
+            </div>
+            <div class="login-error" id="loginError">
+                Senha incorreta! Tente novamente.
+            </div>
+            <div class="password-input-group">
+                <input type="password" id="adminPassword" placeholder="Digite a senha" autofocus>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="checkPassword()">Entrar</button>
+                <button class="btn btn-secondary" onclick="closeLoginModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Pedido -->
+    <div class="container" id="orderForm">
+        <div class="header">
+            <h1>☕ Five Roasters 2026</h1>
+            <p>Faça seu pedido de cafés especiais</p>
+        </div>
+
+        <div class="content">
+            <div class="success-message" id="successMessage">
+                Pedido enviado com sucesso! ✓
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+
+            <form id="coffeeOrderForm">
+                <div class="form-section">
+                    <h2>Seus Dados</h2>
+                    <div class="input-group">
+                        <label for="customerName">Nome Completo *</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="customerPhone">Telefone *</label>
+                        <input type="tel" id="customerPhone" placeholder="(00) 00000-0000" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Selecione os Cafés</h2>
+                    <div class="coffee-grid" id="coffeeGrid"></div>
+                </div>
+
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary">Enviar Pedido</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">Limpar</button>
+                </div>
+            </form>
+
+            <div class="admin-link">
+                <a href="#" onclick="showLoginModal(); return false;">🔐 Área Administrativa</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel Administrativo -->
+    <div class="container admin-container" id="adminPanel">
+        <div class="header">
+            <h1>🔐 Painel Administrativo</h1>
+            <p>Gestão de Pedidos - Five Roasters</p>
+        </div>
+
+        <div class="content">
+            <div class="admin-header">
+                <h2>Pedidos Recebidos</h2>
+                <button class="btn btn-secondary" onclick="logout()">← Sair</button>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('individual')">Pedidos por Pessoa</div>
+                <div class="tab" onclick="showTab('consolidated')">Consolidado para Fornecedor</div>
+            </div>
+
+            <div id="individualOrders"></div>
+            <div id="consolidatedOrders" style="display: none;"></div>
+
+            <div class="btn-container" style="margin-top: 30px;">
+                <button class="btn btn-primary" onclick="exportToCSV()">📥 Exportar CSV</button>
+                <button class="btn btn-secondary" onclick="clearAllOrders()">🗑️ Limpar Todos os Pedidos</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Senha de acesso
+        const ADMIN_PASSWORD = 'cafescompartilhados';
+
+        // Dados dos cafés
+        const coffees = [
+            {
+                id: 1,
+                name: "NOSSO TALHÃO",
+                notes: "Abacaxi; Pitaya; Banana Passa; Chocolate",
+                producer: "Matheus & Kadu - Fazenda Lagoinha",
+                price1kg: 130,
+                price250g: 36
+            },
+            {
+                id: 2,
+                name: "ARAMOSA",
+                notes: "Morango; Amora; Mel; Floral",
+                producer: "Inácio Carlos Urban - Fazenda Rio Brilhante",
+                price1kg: 165,
+                price250g: 46
+            },
+            {
+                id: 3,
+                name: "JAQUELINE SCHIAVO",
+                notes: "Melaço; Limão Siciliano; Jasmim",
+                producer: "Jaqueline Schiavo - Sítio Forno Grande",
+                price1kg: 175,
+                price250g: 48
+            },
+            {
+                id: 4,
+                name: "ANTÔNIO RIGNO",
+                notes: "Melaço; Mel; Floral; Capim Limão",
+                producer: "Antônio Rigno - Fazenda São Judas Tadeu",
+                price1kg: 190,
+                price250g: 50
+            },
+            {
+                id: 5,
+                name: "GESHA",
+                notes: "Maçã; Pera; Caramelo; Floral",
+                producer: "Inácio Carlos Urban - Fazenda Rio Brilhante",
+                price1kg: 190,
+                price250g: 50
+            },
+            {
+                id: 6,
+                name: "FAZENDA LAGOINHA",
+                notes: "Chocolate; Caramelo",
+                producer: "Matheus & Kadu - Fazenda Lagoinha",
+                price1kg: 99,
+                price250g: 32
+            },
+            {
+                id: 7,
+                name: "KARINA SEIBT",
+                notes: "Mel; Zest de Limão; Floral",
+                producer: "Karina Seibt - Fazenda Sementes Gauchas",
+                price1kg: 165,
+                price250g: 44
+            },
+            {
+                id: 8,
+                name: "CAFÉ DO PIOI",
+                notes: "Vinho Tinto; Manteiga; Rum",
+                producer: "Enivaldo Pereira - Fazenda Cruzeiro",
+                price1kg: 165,
+                price250g: 44
+            },
+            {
+                id: 9,
+                name: "SÍTIO SANTA RITA",
+                notes: "Castanhas; Chocolate; Caramelo",
+                producer: "Tarcísio & Jhone Lacerda - Sítio Santa Rita",
+                price1kg: 155,
+                price250g: 43
+            },
+            {
+                id: 10,
+                name: "DOCE CAPARAÓ",
+                notes: "Muito Doce com um Toque de Laranja",
+                producer: "Tarcísio & Jhone Lacerda - Sítio Santa Rita",
+                price1kg: 155,
+                price250g: 43
+            }
+        ];
+
+        // Funções de Login
+        function showLoginModal() {
+            document.getElementById('loginModal').style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('adminPassword').focus();
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('adminPassword').value;
+
+            if (password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminAuthenticated', 'true');
+                closeLoginModal();
+                showAdmin();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        }
+
+        // Permitir Enter para fazer login
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+        });
+
+        function logout() {
+            sessionStorage.removeItem('adminAuthenticated');
+            showOrderForm();
+        }
+
+        // Renderizar cafés no formulário
+        function renderCoffees() {
+            const grid = document.getElementById('coffeeGrid');
+            grid.innerHTML = coffees.map(coffee => `
+                <div class="coffee-card" id="card-${coffee.id}">
+                    <div class="coffee-name">${coffee.name}</div>
+                    <div class="coffee-notes">${coffee.notes}</div>
+                    <div class="coffee-producer">${coffee.producer}</div>
+                    <div class="coffee-price">
+                        1kg: R$ ${coffee.price1kg} | 250g: R$ ${coffee.price250g}
+                    </div>
+                    <div class="coffee-controls">
+                        <input type="number" 
+                               id="qty-${coffee.id}" 
+                               min="0" 
+                               value="0" 
+                               placeholder="Qtd"
+                               onchange="updateCardStyle(${coffee.id})">
+                        <select id="size-${coffee.id}">
+                            <option value="1kg">1kg - R$ ${coffee.price1kg}</option>
+                            <option value="250g">250g - R$ ${coffee.price250g}</option>
+                        </select>
+                    </div>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="grind-${coffee.id}" value="graos" checked>
+                            Em Grãos
+                        </label>
+                        <label>
+                            <input type="radio" name="grind-${coffee.id}" value="moido">
+                            Moído
+                        </label>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCardStyle(coffeeId) {
+            const qty = document.getElementById(`qty-${coffeeId}`).value;
+            const card = document.getElementById(`card-${coffeeId}`);
+            if (qty > 0) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        }
+
+        // Submeter pedido
+        document.getElementById('coffeeOrderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+
+            const items = [];
+            coffees.forEach(coffee => {
+                const qty = parseInt(document.getElementById(`qty-${coffee.id}`).value) || 0;
+                if (qty > 0) {
+                    const size = document.getElementById(`size-${coffee.id}`).value;
+                    const grind = document.querySelector(`input[name="grind-${coffee.id}"]:checked`).value;
+                    const price = size === '1kg' ? coffee.price1kg : coffee.price250g;
+
+                    items.push({
+                        coffeeName: coffee.name,
+                        quantity: qty,
+                        size: size,
+                        grind: grind,
+                        unitPrice: price,
+                        total: qty * price
+                    });
+                }
+            });
+
+            if (items.length === 0) {
+                showError('Por favor, selecione pelo menos um café!');
+                return;
+            }
+
+            const order = {
+                id: Date.now(),
+                name: name,
+                phone: phone,
+                items: items,
+                date: new Date().toLocaleString('pt-BR'),
+                total: items.reduce((sum, item) => sum + item.total, 0)
+            };
+
+            // Salvar no localStorage
+            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
+            orders.push(order);
+            localStorage.setItem('coffeeOrders', JSON.stringify(orders));
+
+            showSuccess();
+            resetForm();
+        });
+
+        function showSuccess() {
+            const msg = document.getElementById('successMessage');
+            msg.style.display = 'block';
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 5000);
+            window.scrollTo(0, 0);
+        }
+
+        function showError(message) {
+            const msg = document.getElementById('errorMessage');
+            msg.textContent = message;
+            msg.style.display = 'block';
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 5000);
+            window.scrollTo(0, 0);
+        }
+
+        function resetForm() {
+            document.getElementById('coffeeOrderForm').reset();
+            coffees.forEach(coffee => {
+                document.getElementById(`card-${coffee.id}`).classList.remove('selected');
+            });
+        }
+
+        // Área Administrativa
+        function showAdmin() {
+            // Verificar autenticação
+            if (sessionStorage.getItem('adminAuthenticated') !== 'true') {
+                showLoginModal();
+                return;
+            }
+
+            document.getElementById('orderForm').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadOrders();
+        }
+
+        function showOrderForm() {
+            document.getElementById('orderForm').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (tab === 'individual') {
+                document.getElementById('individualOrders').style.display = 'block';
+                document.getElementById('consolidatedOrders').style.display = 'none';
+            } else {
+                document.getElementById('individualOrders').style.display = 'none';
+                document.getElementById('consolidatedOrders').style.display = 'block';
+                loadConsolidated();
+            }
+        }
+
+        function loadOrders() {
+            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
+            const container = document.getElementById('individualOrders');
+
+            if (orders.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 40px;">Nenhum pedido recebido ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = orders.map(order => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <strong style="font-size: 1.2em;">${order.name}</strong><br>
+                            <span style="color: #7f8c8d;">📱 ${order.phone}</span><br>
+                            <span style="color: #95a5a6; font-size: 0.9em;">📅 ${order.date}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5em; color: #27ae60; font-weight: bold;">
+                                R$ ${order.total.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-items">
+                        ${order.items.map(item => `
+                            <div class="order-item">
+                                <strong>${item.coffeeName}</strong> - 
+                                ${item.quantity}x ${item.size} (${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}) - 
+                                R$ ${item.total.toFixed(2)}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadConsolidated() {
+            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
+            const consolidated = {};
+
+            orders.forEach(order => {
+                order.items.forEach(item => {
+                    const key = `${item.coffeeName}|${item.size}|${item.grind}`;
+                    if (!consolidated[key]) {
+                        consolidated[key] = {
+                            coffeeName: item.coffeeName,
+                            size: item.size,
+                            grind: item.grind,
+                            quantity: 0,
+                            unitPrice: item.unitPrice
+                        };
+                    }
+                    consolidated[key].quantity += item.quantity;
+                });
+            });
+
+            const container = document.getElementById('consolidatedOrders');
+
+            if (Object.keys(consolidated).length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #95a5a6; padding: 40px;">Nenhum pedido para consolidar.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Café</th>
+                            <th>Tamanho</th>
+                            <th>Tipo</th>
+                            <th>Quantidade Total</th>
+                            <th>Valor Unitário</th>
+                            <th>Valor Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.values(consolidated).map(item => `
+                            <tr>
+                                <td><strong>${item.coffeeName}</strong></td>
+                                <td>${item.size}</td>
+                                <td>${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}</td>
+                                <td><strong>${item.quantity}</strong></td>
+                                <td>R$ ${item.unitPrice.toFixed(2)}</td>
+                                <td><strong>R$ ${(item.quantity * item.unitPrice).toFixed(2)}</strong></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: #f8f9fa; font-weight: bold;">
+                            <td colspan="5" style="text-align: right;">TOTAL GERAL:</td>
+                            <td>R$ ${Object.values(consolidated).reduce((sum, item) => 
+                                sum + (item.quantity * item.unitPrice), 0).toFixed(2)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+        }
+
+        function exportToCSV() {
+            const orders = JSON.parse(localStorage.getItem('coffeeOrders') || '[]');
+
+            let csv = 'Nome,Telefone,Café,Quantidade,Tamanho,Tipo,Valor Unitário,Valor Total,Data\n';
+
+            orders.forEach(order => {
+                order.items.forEach(item => {
+                    csv += `"${order.name}","${order.phone}","${item.coffeeName}",${item.quantity},"${item.size}","${item.grind === 'graos' ? 'Em Grãos' : 'Moído'}",${item.unitPrice},${item.total},"${order.date}"\n`;
+                });
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `pedidos_five_roasters_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function clearAllOrders() {
+            if (confirm('Tem certeza que deseja apagar TODOS os pedidos? Esta ação não pode ser desfeita!')) {
+                localStorage.removeItem('coffeeOrders');
+                loadOrders();
+                alert('Todos os pedidos foram removidos!');
+            }
+        }
+
+        // Inicializar
+        renderCoffees();
+    </script>
+</body>
+</html>
